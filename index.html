@@ -120,7 +120,7 @@ footer a{color:var(--gold);text-decoration:none;}
   <h1>Golf in <span>Lombardia</span></h1>
   <p>La guida completa ai campi pratica, driving range e resort della regione. Filtra per provincia, distanza e tipo di struttura.</p>
   <div class="stat-bar">
-    <div class="stat"><div class="stat-num" id="count-clubs">26</div><div class="stat-label">Club mappati</div></div>
+    <div class="stat"><div class="stat-num" id="count-clubs">53</div><div class="stat-label">Club mappati</div></div>
     <div class="stat"><div class="stat-num">12</div><div class="stat-label">Province</div></div>
     <div class="stat"><div class="stat-num">Via Mantova 5</div><div class="stat-label">Distanze da Milano</div></div>
   </div>
@@ -135,7 +135,8 @@ footer a{color:var(--gold);text-decoration:none;}
     <strong>Legenda marker:</strong> &nbsp;
     🔵 Indoor (simulatori/centri chiusi) &nbsp;|&nbsp;
     🟢 Campo Pratica / Driving Range &nbsp;|&nbsp;
-    🟡 Resort / Club con percorso 18 buche
+    🟡 Resort / Club con percorso 18 buche &nbsp;|&nbsp;
+    🔴 Chiuso / Non verificabile
     <br>Clicca su un marker per vedere indirizzo, tipo, distanza e sito web.
   </div>
 </section>
@@ -181,6 +182,15 @@ footer a{color:var(--gold);text-decoration:none;}
       <label>Distanza max da Milano <span id="distance-val">100 km</span></label>
       <input type="range" id="f-dist" min="5" max="200" value="200" step="5">
     </div>
+    <div class="filter-group">
+      <label>Stato</label>
+      <select id="f-stato">
+        <option value="">Tutti</option>
+        <option value="Attivo">✅ Attivo</option>
+        <option value="Da verificare">⚠️ Da verificare</option>
+        <option value="Chiuso">🔴 Chiuso</option>
+      </select>
+    </div>
     <button class="btn-reset" onclick="resetFilters()">Reimposta</button>
   </div>
 
@@ -194,10 +204,11 @@ footer a{color:var(--gold);text-decoration:none;}
           <th onclick="sortTable(1)">Provincia</th>
           <th onclick="sortTable(2)">Tipo</th>
           <th onclick="sortTable(3)">Dist. (km)</th>
-          <th onclick="sortTable(4)">Ingresso C.P.</th>
-          <th onclick="sortTable(5)">Palline</th>
+          <th>Stato</th>
+          <th onclick="sortTable(5)">Ingresso C.P.</th>
+          <th onclick="sortTable(6)">Palline</th>
           <th>Noleggio Att.</th>
-          <th onclick="sortTable(7)">Lezione Maestro</th>
+          <th>Lezione Maestro</th>
           <th>Maestro</th>
           <th>Servizi Extra</th>
           <th>Tel</th>
@@ -212,7 +223,7 @@ footer a{color:var(--gold);text-decoration:none;}
 </section>
 
 <footer>
-  <p><strong style="color:rgba(255,255,255,.8)">Golf in Lombardia</strong> — Guida ai campi pratica aggiornata 2025</p>
+  <p><strong style="color:rgba(255,255,255,.8)">Golf in Lombardia</strong> — Guida ai campi pratica aggiornata agosto 2026</p>
   <p style="margin-top:6px;">Dati raccolti da siti ufficiali dei circoli e Federazione Italiana Golf. Verificare sempre le tariffe direttamente con i club prima della visita.</p>
   <p style="margin-top:6px;">Distanze calcolate in linea d'aria da Via Mantova 5, Milano (45.4514, 9.1939)</p>
 </footer>
@@ -220,147 +231,417 @@ footer a{color:var(--gold);text-decoration:none;}
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
 const clubs = [
-  // MILANO
-  {name:"Bold Sport Indoor Golf",prov:"Milano",type:"indoor",lat:45.4785,lon:9.1450,
-   addr:"Via Giorgio Washington 70, Milano",dist:3.6,
-   ingresso:"n.d.",palline:"incluse in lezione",noleggio:"Sì",lezione:"€95/ora (incl. attrezz.)",maestro:"PGAI",
-   servizi:"Fitness, fisioterapia, medicina sport",tel:"02 36744620",web:"https://www.boldsport.it/golf/"},
+  // ============ MILANO ============
+  {name:"Bold Sport Indoor Golf",prov:"Milano",type:"indoor",lat:45.4742,lon:9.1565,
+   addr:"Via G. Washington 70, 20146 Milano (MI)",dist:3.5,
+   buche:0,post_cop:"n.v.",post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"PGAI",
+   servizi:"Simulatori avanzati, PGAI Performance Center, fitting, corsi",
+   tel:"02 36744620",web:"https://www.boldsport.it",stato:"Attivo",
+   note:"Primo PGAI Performance Center a Milano (aperto 2018)"},
 
-  {name:"Golf Le Rovedine",prov:"Milano",type:"resort",lat:45.3815,lon:9.1240,
-   addr:"Via Karl Marx 18, Noverasco di Opera (MI)",dist:9.2,
-   ingresso:"n.d.",palline:"€7/100 palline",noleggio:"Sì",lezione:"Corso avv. 3 pax €169/p.",maestro:"PGAI",
-   servizi:"Ristorante, pro shop, piscina, 18+9 buche",tel:"02 57606420",web:"https://www.rovedine.com"},
+  {name:"Golfindoor / Sport Indoor",prov:"Milano",type:"indoor",lat:45.5004,lon:9.2275,
+   addr:"Via Padova 168, 20132 Milano (MI)",dist:9.5,
+   buche:0,post_cop:"n.v.",post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Driving range indoor, Trackman 4, simulatori, lezioni",
+   tel:"n.v.",web:"https://sportindoor.it/golf/",stato:"Attivo",
+   note:"Centro polifunzionale con driving range coperto e Trackman 4"},
+
+  {name:"Golf Le Rovedine",prov:"Milano",type:"resort",lat:45.3853,lon:9.1545,
+   addr:"Via Noverasco 10, 20090 Opera (MI)",dist:10.8,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€8-15",palline:"n.v.",noleggio:"Sì",lezione:"a partire da €25",maestro:"FIG",
+   servizi:"Club house, bar, ristorante, piscina, pro shop, 18+9 buche",
+   tel:"02 57606420",web:"https://www.rovedine.com",stato:"Attivo",
+   note:"Sede del 52° Open d'Italia. 18+9 buche."},
 
   {name:"Castello Tolcinasco",prov:"Milano",type:"resort",lat:45.3460,lon:9.1175,
-   addr:"Loc. Tolcinasco, Pieve Emanuele (MI)",dist:12.1,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Pacchetti academy",maestro:"PGA/FIG",
-   servizi:"Ristorante, piscina, Spa, resort, 36 buche",tel:"02 90722740",web:"https://www.golftolcinasco.it"},
+   addr:"Loc. Tolcinasco, 20090 Pieve Emanuele (MI)",dist:12.1,
+   buche:45,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"pacchetti academy",maestro:"PGA",
+   servizi:"Ristorante, piscina, Spa, resort, 36 buche + 9 executive",
+   tel:"02 90722740",web:"https://www.golftolcinasco.it",stato:"Attivo",
+   note:"Resort esclusivo 36+9 buche"},
 
-  {name:"Campo Pratica Orsini",prov:"Milano",type:"outdoor",lat:45.4240,lon:9.2918,
-   addr:"Via Buozzi 4/C, Peschiera Borromeo (MI)",dist:13.2,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"Disponibile (PGA)",maestro:"PGA",
-   servizi:"Pitching green, putting green, 4 buche executive",tel:"02 5470581",web:"http://www.orsinigolf.it"},
+  {name:"Orsini Golf",prov:"Milano",type:"outdoor",lat:45.4240,lon:9.2918,
+   addr:"Via Buozzi 4/C, 20068 Peschiera Borromeo (MI)",dist:13.2,
+   buche:4,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"disponibile (PGA)",maestro:"PGA",
+   servizi:"Pitching green, putting green, 4 buche executive",
+   tel:"02 5470581",web:"http://www.orsinigolf.it",stato:"Attivo",
+   note:"Campo pratica con 4 buche executive"},
 
   {name:"Molinetto Country Club",prov:"Milano",type:"resort",lat:45.5165,lon:9.3468,
-   addr:"Strada Padana Superiore 1, Cernusco sul Naviglio (MI)",dist:17.8,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Contattare maestro PGAI",maestro:"PGAI",
-   servizi:"Bar, ristorante, piscina, spa, tennis, Trackman Range, 18 buche par 71",tel:"02 92105128",web:"https://www.molinettocountryclub.it"},
+   addr:"Strada Padana Superiore 1, 20063 Cernusco sul Naviglio (MI)",dist:17.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta (PGAI)",maestro:"PGAI",
+   servizi:"Bar, ristorante, piscina, spa, tennis, Trackman Range, 18 buche par 71",
+   tel:"02 92105128",web:"https://www.molinettocountryclub.it",stato:"Attivo",
+   note:"18 buche par 71. Trackman Range."},
 
   {name:"Golf Club Ambrosiano",prov:"Milano",type:"resort",lat:45.3305,lon:8.9778,
-   addr:"Cascina Bertacca, Bubbiano (MI)",dist:24.3,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche)",lezione:"n.d.",maestro:"n.d.",
-   servizi:"Bar, ristorante, piscina, pro shop, 18 buche par 72",tel:"02 90840820",web:"https://golfclubambrosiano.com"},
+   addr:"Cascina Bertacca snc, 20080 Bubbiano (MI)",dist:24.3,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì (sacche)",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Bar, ristorante, piscina, pro shop, 18 buche par 72",
+   tel:"02 90840820",web:"https://golfclubambrosiano.com",stato:"Attivo",
+   note:"CP €10. Green fee feriale €40, festivo €65"},
 
   {name:"Green Club Lainate",prov:"Milano",type:"resort",lat:45.5697,lon:9.0088,
-   addr:"Via Manzoni 45, Lainate (MI)",dist:19.5,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"€40/30 min",maestro:"FIG (4 maestri)",
-   servizi:"Hotel 4★, bar, ristorante, 18 buche, chipping green",tel:"02 9370869",web:"https://www.greenclubgolf.it"},
+   addr:"Via Manzoni 45, 20045 Lainate (MI)",dist:19.5,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€8",palline:"n.v.",noleggio:"Sì",lezione:"€40/30 min",maestro:"FIG",
+   servizi:"Hotel 4★, bar, ristorante, 18 buche, chipping green",
+   tel:"02 9370869",web:"https://www.greenclubgolf.it",stato:"Attivo",
+   note:"Campo pratica €8. Green fee feriale €42, festivo €60"},
 
-  // MONZA E BRIANZA
+  {name:"Golf Club Basiglio",prov:"Milano",type:"resort",lat:45.3635,lon:9.1427,
+   addr:"Via Salvo D'Acquisto 6, 20080 Basiglio (MI)",dist:14.8,
+   buche:9,post_cop:26,post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"26 postazioni campo pratica, putting green, pitching green, bunker, pro shop, ristorante",
+   tel:"02 90785955",web:"https://www.golfbasiglio.it",stato:"Attivo",
+   note:"9 buche. 26 postazioni CP."},
+
+  {name:"Golf San Vito (Agriturismo San Vito)",prov:"Milano",type:"outdoor",lat:45.3982,lon:9.0440,
+   addr:"Via Marta Lodi 2/C, 20083 San Vito di Gaggiano (MI)",dist:15.5,
+   buche:9,post_cop:"n.v.",post_sco:25,
+   ingresso:"€11 (feriale €23 giornaliero)",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"9 buche par 32, campo pratica 25 postazioni, area approcci 10.000mq",
+   tel:"02 9081879",web:"https://golfsanvito.it",stato:"Attivo",
+   note:"CP €11. Green fee festivo €30, feriale €23"},
+
+  {name:"Golf Villa Paradiso",prov:"Monza e Brianza",type:"resort",lat:45.6278,lon:9.4645,
+   addr:"Via Villa Paradiso 12/A, 20872 Cornate d'Adda (MB)",dist:29.1,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche championship + 9 executive, bar, ristorante, pro shop, parco Adda",
+   tel:"039 60271",web:"https://www.villaparadisogolf.it",stato:"Attivo",
+   note:"Provincia MB (Cornate d'Adda). 18+9 buche, immerso nel Parco Adda Nord"},
+
+  {name:"Zoate Golf Club",prov:"Milano",type:"resort",lat:45.4125,lon:9.4038,
+   addr:"Via G. Verdi 8, Zoate di Tribiano (MI)",dist:22.5,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, pro shop",
+   tel:"02 9064050",web:"https://www.golfzoate.it",stato:"Attivo",
+   note:"CP €10. Green fee feriale 18b €50, festivo €70"},
+
+  {name:"San Siro Golf",prov:"Milano",type:"outdoor",lat:45.4778,lon:9.1180,
+   addr:"Piazzale dello Sport 12 (Ippodromo), 20151 Milano (MI)",dist:5.2,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica nell'Ippodromo, putting green, zona approcci",
+   tel:"02 4526700",web:"https://www.sansirogolf.it",stato:"Attivo",
+   note:"Chiuse temporaneamente nel 2020 per COVID poi ripreso. Sito attivo 2025. Chiuso domenica."},
+
+  // ============ MONZA E BRIANZA ============
   {name:"Golf Monza",prov:"Monza e Brianza",type:"outdoor",lat:45.6014,lon:9.2181,
-   addr:"Via G. Falcone 15, Muggiò (MB)",dist:19.2,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (attrezz. gratuita)",lezione:"€60/60 min (2 pers.)",maestro:"Federale FIG",
-   servizi:"Driving range 300m, Pitch & Putt 3 buche, putting green, zona approcci",tel:"039 790072",web:"https://www.golfmonza.com"},
+   addr:"Via G. Falcone 15, 20835 Muggiò (MB)",dist:19.2,
+   buche:3,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì (gratuito)",lezione:"€60/ora (2 pers.)",maestro:"FIG",
+   servizi:"Driving range 300m, Pitch & Putt 3 buche, putting green, zona approcci",
+   tel:"039 790072",web:"https://www.golfmonza.com",stato:"Attivo",
+   note:"CP €10. Green fee P&P €20."},
 
   {name:"BE Golf (ex Bricch Golf)",prov:"Monza e Brianza",type:"outdoor",lat:45.6533,lon:9.1365,
-   addr:"Via R. Leoncavallo snc, Barlassina (MB)",dist:26.8,
-   ingresso:"Abbonamento €350/anno (completo €490)",palline:"incluse",noleggio:"n.d.",lezione:"n.d.",maestro:"n.d.",
-   servizi:"Campo pratica, bar, ristorante, piscina pubblica",tel:"0362 1483619",web:"https://www.begolf.it"},
+   addr:"Via R. Leoncavallo snc, 20825 Barlassina (MB)",dist:26.8,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"abbonamento CP €350/anno",palline:"incluse",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica, bar, ristorante, piscina, pro shop, Parco delle Groane",
+   tel:"346 2392610",web:"https://www.begolf.it",stato:"Attivo",
+   note:"Solo abbonamento annuale per campo pratica. Nel Parco delle Groane."},
 
   {name:"Barlassina Country Club",prov:"Monza e Brianza",type:"resort",lat:45.6651,lon:9.1300,
-   addr:"Via Privata Golf 2, Lentate sul Seveso (MB)",dist:27.5,
-   ingresso:"€10–25",palline:"n.d.",noleggio:"n.d.",lezione:"Corsi individuali e gruppo",maestro:"FIG/PGA",
-   servizi:"Bar, ristorante, foresteria, pro shop, 18 buche",tel:"0362 560621",web:"https://www.barlassinacountryclub.it"},
+   addr:"Via Privata Golf 2, 22060 Birago di Camnago – Lentate sul Seveso (MB)",dist:28.5,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10-25",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, piscina, tennis, pro shop",
+   tel:"0362 560521",web:"https://www.barlassinacountryclub.it",stato:"Attivo",
+   note:"Green fee 18b feriale €70, festivo €110"},
 
-  {name:"Golf Brianza CC",prov:"Monza e Brianza",type:"resort",lat:45.6434,lon:9.3787,
-   addr:"Loc. Cascina Cazzù 4, Usmate Velate (MB)",dist:26.0,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche, carrelli)",lezione:"n.d.",maestro:"n.d.",
-   servizi:"Bar, ristorante, foresteria, golf cart, 18 buche",tel:"039 6829089",web:"https://brianzagolf.it"},
+  {name:"Golf Brianza Country Club",prov:"Monza e Brianza",type:"resort",lat:45.6525,lon:9.3830,
+   addr:"Loc. Cascina Cazzù 4, 20865 Usmate Velate (MB)",dist:24.2,
+   buche:9,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"9 buche, bar, ristorante, piscina, pro shop, 4 laghi",
+   tel:"039 6829089",web:"https://brianzagolf.it",stato:"Attivo",
+   note:"9 buche. Green fee feriale €50, festivo €70"},
 
-  {name:"Golf Club Milano (Parco Monza)",prov:"Monza e Brianza",type:"resort",lat:45.6496,lon:9.2805,
-   addr:"Viale Mulini San Giorgio 7, Parco di Monza (MB)",dist:20.8,
-   ingresso:"€20 (verde, solo feriali)",palline:"n.d.",noleggio:"n.d.",lezione:"Solo soci",maestro:"n.d.",
-   servizi:"Ristorante, pro shop, piscina, 27 buche, percorso storico",tel:"039 303081",web:"https://golfclubmilano.com"},
+  {name:"Golf Club Milano",prov:"Monza e Brianza",type:"resort",lat:45.6290,lon:9.2680,
+   addr:"Parco Reale di Monza, 20900 Monza (MB)",dist:22.4,
+   buche:36,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"36 buche nel Parco Reale di Monza, bar, ristorante, pro shop",
+   tel:"039 303081",web:"https://golfclubmilano.com",stato:"Attivo",
+   note:"Fondato 1928. 36 buche. Green fee feriale €40, festivo €65"},
 
-  // COMO
-  {name:"Golf Club Carimate",prov:"Como",type:"resort",lat:45.7016,lon:9.1015,
-   addr:"Via Airoldi 2, Carimate (CO)",dist:29.0,
-   ingresso:"€10",palline:"n.d.",noleggio:"Sì",lezione:"Team di professionisti",maestro:"PGA/FIG",
-   servizi:"Bar, ristorante, pro shop, 18 buche, bunker",tel:"031 790226",web:"https://www.golfcarimate.it"},
+  // ============ COMO ============
+  {name:"Golf Club Carimate",prov:"Como",type:"resort",lat:45.7058,lon:9.1010,
+   addr:"Via Airoldi 2, 22060 Carimate (CO)",dist:33.1,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, piscina, tennis, pro shop",
+   tel:"031 790226",web:"https://www.golfcarimate.it",stato:"Attivo",
+   note:"CP €10. Green fee feriale €45-55, festivo €60-75"},
 
-  {name:"Golf Club Villa d'Este",prov:"Como",type:"resort",lat:45.7678,lon:9.1578,
-   addr:"Via per Cantù 13, Montorfano (CO)",dist:38.2,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche)",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Ristorante, lodge, pro shop, 18 buche, vista lago",tel:"031 200200",web:"https://www.golfvilladeste.com"},
+  {name:"Golf Club Villa d'Este",prov:"Como",type:"resort",lat:45.7718,lon:9.1478,
+   addr:"Via per Cantù 13, 22010 Montorfano (CO)",dist:43.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, lodge, pro shop",
+   tel:"031 200200",web:"https://www.golfvilladeste.com",stato:"Attivo",
+   note:"Considerato uno dei migliori campi d'Italia"},
 
-  // VARESE
-  {name:"Golf Club Varese",prov:"Varese",type:"resort",lat:45.8265,lon:8.7880,
-   addr:"Via Vittorio Veneto 59, Luvinate (VA)",dist:46.2,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"FIG",
-   servizi:"Bar, ristorante, pro shop, 18 buche",tel:"0332 229302",web:"https://www.golfclubvarese.it"},
+  {name:"Golf Club Monticello",prov:"Como",type:"resort",lat:45.7355,lon:9.0505,
+   addr:"Via A. Volta 63, 22070 Cassina Rizzardi (CO)",dist:37.2,
+   buche:36,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"36 buche, piscina, bar, ristorante, pro shop",
+   tel:"031 928055",web:"https://www.golfclubmonticello.it",stato:"Attivo",
+   note:"36 buche (18+18). Fondato 1974."},
 
-  {name:"Panorama Golf Varese",prov:"Varese",type:"outdoor",lat:45.8010,lon:8.8120,
-   addr:"Via Belmonte 169, Varese (VA)",dist:43.5,
-   ingresso:"Pay&play",palline:"incluse nel green fee",noleggio:"n.d.",lezione:"3 lez. 30' + 1 mese pratica €85",maestro:"n.d.",
-   servizi:"Bar, ristorante, 9 buche par 33, campo pratica",tel:"0332 330356",web:"https://www.panoramagolf.it"},
+  {name:"Golf Acropolis",prov:"Como",type:"outdoor",lat:45.7603,lon:9.0565,
+   addr:"Via Alla Cava snc, 22070 Luisago (CO)",dist:39.1,
+   buche:3,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"3 buche, campo pratica, bar",
+   tel:"031 889855",web:"https://www.golfacropolis.it",stato:"Attivo",
+   note:"Campo pratica con 3 buche"},
 
-  // BERGAMO
-  {name:"Golf Club Bergamo L'Albenza",prov:"Bergamo",type:"resort",lat:45.7500,lon:9.5783,
-   addr:"Via Longoni 12, Almenno San Bartolomeo (BG)",dist:39.0,
-   ingresso:"€25 feriale / €30 festivo",palline:"€2.50/32 palline",noleggio:"Sì (carrelli, cart)",lezione:"Pacchetto neofiti €300",maestro:"FIG/PGA",
-   servizi:"Bar, ristorante, pro shop, 27 buche, gare nazionali",tel:"035 640028",web:"https://golfbergamo.club"},
+  {name:"Virginia Country Golf Club",prov:"Como",type:"outdoor",lat:45.7273,lon:8.9889,
+   addr:"Via De Gasperi 20/B, 22070 Appiano Gentile (CO)",dist:39.5,
+   buche:9,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"abbonamento annuale",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Pitch & Putt 9 buche, campo pratica, bar",
+   tel:"031 930288",web:"https://www.virginiagolf.it",stato:"Attivo",
+   note:"Pitch & Putt + campo pratica. Solo abbonamento annuale."},
 
-  // BRESCIA
-  {name:"Golf Bogliaco",prov:"Brescia",type:"resort",lat:45.7043,lon:10.5870,
-   addr:"Via del Golf 21, Toscolano Maderno (BS)",dist:94.6,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche, carrelli)",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Piscina, bar, ristorante, lodge, 18 buche par 70, vista Garda",tel:"0365 643006",web:"https://www.golfbogliaco.com"},
+  // ============ VARESE ============
+  {name:"Golf Club Varese",prov:"Varese",type:"resort",lat:45.8218,lon:8.7632,
+   addr:"Via Vittorio Veneto 59, 21020 Luvinate (VA)",dist:54.2,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, pro shop, club house storica",
+   tel:"0332 229302",web:"https://www.golfclubvarese.it",stato:"Attivo",
+   note:"Fondato 1934. Campo tecnico in ambiente naturale."},
 
-  {name:"Franciacorta Golf Club",prov:"Brescia",type:"resort",lat:45.6118,lon:9.9878,
-   addr:"Via Provinciale 34/B, Corte Franca (BS)",dist:73.4,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Ristorante, bar, relais hotel, pro shop, 18 buche par 73",tel:"030 984167",web:"https://www.franciacortagolfclub.it"},
+  {name:"Panorama Golf",prov:"Varese",type:"outdoor",lat:45.8158,lon:8.8178,
+   addr:"Via Belmonte, 21100 Varese (VA)",dist:52.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€18 (giornaliero con 18b)",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, campo pratica, bar, ristorante",
+   tel:"0332 289005",web:"https://www.panoramagolf.it",stato:"Attivo",
+   note:"City Golf di Varese. Fee giornaliero €18 (18b)."},
 
-  {name:"GardaGolf Country Club",prov:"Brescia",type:"resort",lat:45.5480,lon:10.5528,
-   addr:"Via Angelo Omodeo 2, Soiano del Lago (BS)",dist:101.2,
-   ingresso:"€15",palline:"€2.50/gettone",noleggio:"Sì (cart, carrelli)",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Ristorante, piscina, tennis, foresteria, pro shop, 27 buche",tel:"0365 674707",web:"https://www.gardagolf.it"},
+  // ============ BERGAMO ============
+  {name:"Golf Club Bergamo L'Albenza",prov:"Bergamo",type:"resort",lat:45.7548,lon:9.5848,
+   addr:"Via Longoni 12, 24030 Almenno San Bartolomeo (BG)",dist:48.5,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€25",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"27 buche, bar, ristorante, pro shop",
+   tel:"035 640028",web:"https://golfbergamo.club",stato:"Attivo",
+   note:"Green fee feriale 9b €60 (alta), €50 (bassa). CP €25."},
 
-  // CREMONA
-  {name:"Golf Il Torrazzo",prov:"Cremona",type:"resort",lat:45.1540,lon:9.8760,
-   addr:"Via Castelleone 101, S. Predengo, Cremona (CR)",dist:75.3,
-   ingresso:"€10",palline:"n.d.",noleggio:"Sì (carrelli)",lezione:"Contattare segreteria",maestro:"n.d.",
-   servizi:"Bar, ristorante, meeting room, campo pratica illuminato, 9 buche",tel:"0372 471563",web:"https://www.golfiltorrazzo.it"},
+  {name:"Golf Indoor Bergamo (Sportindoor Mozzo)",prov:"Bergamo",type:"indoor",lat:45.7265,lon:9.6135,
+   addr:"Via Fausto Radici 1, 24030 Mozzo (BG)",dist:46.8,
+   buche:0,post_cop:"n.v.",post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica coperto riscaldato, Trackman 4, putting green, lezioni",
+   tel:"035 610259",web:"https://sportindoor.it/golf/",stato:"Attivo",
+   note:"Indoor riscaldato. Trackman 4. Aperto 7 giorni su 7."},
 
-  // LODI
-  {name:"Terre del Po GC",prov:"Lodi",type:"outdoor",lat:45.1390,lon:9.6850,
-   addr:"Cascina Castellina, Cornovecchio (LO)",dist:58.5,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"n.d.",maestro:"n.d.",
-   servizi:"Bar, ristorante, pitching green, putting green, pro shop",tel:"334 3331053",web:"https://www.golfterredelpo.com"},
+  {name:"Golf Club Presolana",prov:"Bergamo",type:"outdoor",lat:45.9935,lon:10.0435,
+   addr:"Loc. Dionico 1, 24020 Castione della Presolana (BG)",dist:96.5,
+   buche:0,post_cop:8,post_sco:8,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Driving range, 8 post. coperte, 8 scoperte, putting green, pitching green, bunker",
+   tel:"0346 60039",web:"https://www.presolanagolf.it",stato:"Attivo",
+   note:"Solo campo pratica (no buche). In montagna a ~1000m slm."},
 
-  // PAVIA
-  {name:"Ticino Golf Club",prov:"Pavia",type:"outdoor",lat:45.1780,lon:9.1420,
-   addr:"Via Sora 20, Pavia (PV)",dist:35.2,
-   ingresso:"Quota soc. da €110/anno",palline:"n.d.",noleggio:"n.d.",lezione:"Maestri professionisti",maestro:"n.d.",
-   servizi:"Pitching green, putting green, 5 buche par 17, campo illuminato",tel:"0382 1753160",web:"https://www.ticino-golf.it"},
+  {name:"Parco dei Colli Golf Club (Ai Colli di Bergamo)",prov:"Bergamo",type:"resort",lat:45.7128,lon:9.6888,
+   addr:"Via Longuelo 264, 24129 Bergamo (BG)",dist:47.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€15",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, pro shop",
+   tel:"035 310051",web:"https://www.parcodeicolliBG.it",stato:"Attivo",
+   note:"Green fee feriale €30, festivo €40. CP €15."},
 
-  // MANTOVA
-  {name:"Origini Golf Mantova",prov:"Mantova",type:"resort",lat:45.1438,lon:10.7890,
-   addr:"Strada Colombina 60, Curtatone (MN)",dist:116.0,
-   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Bar, ristorante agriturismo, 9 buche par 34, campo pratica 12 postazioni",tel:"334 8191639",web:"https://www.mantovagolf.com"},
+  {name:"Golf Club Brembana",prov:"Bergamo",type:"outdoor",lat:45.8800,lon:9.7200,
+   addr:"Valle Brembana (BG) — indirizzo da verificare",dist:60.0,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"n.v.",palline:"n.v.",noleggio:"n.v.",lezione:"n.v.",maestro:"n.v.",
+   servizi:"n.v.",
+   tel:"n.v.",web:"⚠️ sito n.d.",stato:"⚠️ Da verificare",
+   note:"Non trovato nei database FIG né negli elenchi ufficiali. Probabilmente non più attivo o non esistente."},
 
-  // LECCO
-  {name:"Golf Club Lecco",prov:"Lecco",type:"resort",lat:45.8070,lon:9.3220,
-   addr:"Frazione Pizzighettone, Annone Brianza (LC)",dist:38.5,
-   ingresso:"€10–12",palline:"n.d.",noleggio:"Sì (cart)",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Bar, ristorante, pro shop, 18 buche, 11 post. scoperte + 7 coperte",tel:"0341 579525",web:"https://golfclublecco.it"},
+  // ============ BRESCIA ============
+  {name:"Golf Bogliaco",prov:"Brescia",type:"resort",lat:45.6775,lon:10.5975,
+   addr:"Via del Golf 21, 25080 Toscolano Maderno (BS)",dist:109.8,
+   buche:18,post_cop:9,post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche (par 69), 9 post. coperte, putting green, pitching green, piscina, bar, ristorante",
+   tel:"0365 643006",web:"https://www.golfbogliaco.com",stato:"Attivo",
+   note:"Fondato 1912. Uno dei più antichi d'Italia."},
 
-  // SONDRIO
-  {name:"Valtellina Golf & Country Club",prov:"Sondrio",type:"resort",lat:46.1260,lon:9.7840,
-   addr:"Via Valeriana 29/A, Caiolo (SO)",dist:100.5,
-   ingresso:"€15",palline:"n.d.",noleggio:"Sì (cart)",lezione:"Disponibile",maestro:"n.d.",
-   servizi:"Bar, ristorante, pro shop, 18 buche par 71",tel:"0342 354009",web:"https://www.valtellinagolf.com"},
+  {name:"Franciacorta Golf Club",prov:"Brescia",type:"resort",lat:45.6545,lon:9.9978,
+   addr:"Via Provinciale 34B, 25040 Corte Franca (BS)",dist:78.5,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"27 buche, bar, ristorante, pro shop, 80 ettari tra boschi e vigneti",
+   tel:"030 984167",web:"https://www.franciacortagolfclub.it",stato:"Attivo",
+   note:"27 buche (3 percorsi). In Franciacorta DOCG."},
+
+  {name:"GardaGolf Country Club",prov:"Brescia",type:"resort",lat:45.5445,lon:10.5088,
+   addr:"Via Angelo Omodeo 2, 25080 Soiano del Lago (BS)",dist:102.3,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"27 buche, bar, ristorante, pro shop, vista lago di Garda",
+   tel:"0365 674707",web:"https://gardagolf.it",stato:"Attivo",
+   note:"27 buche sul Lago di Garda"},
+
+  {name:"Arzaga Golf Club",prov:"Brescia",type:"resort",lat:45.5228,lon:10.4558,
+   addr:"Via Arzaga 1, 25080 Carzago di Calvagese (BS)",dist:100.2,
+   buche:27,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€12",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"27 buche, bar, ristorante, hotel, spa, piscina",
+   tel:"030 680600",web:"https://www.arzagagolf.it",stato:"Attivo",
+   note:"CP €12. Green fee feriale 18b €75, festivo €98"},
+
+  {name:"Chervo' Golf San Vigilio",prov:"Brescia",type:"resort",lat:45.4622,lon:10.7130,
+   addr:"Loc. San Vigilio, 25010 Pozzolengo (BS)",dist:128.5,
+   buche:36,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"27+9 buche, hotel, spa, 2 piscine, bar, ristorante, pro shop",
+   tel:"030 918010",web:"https://www.chervogolf.com",stato:"Attivo",
+   note:"Resort 36 buche (27+9) sul Lago di Garda"},
+
+  {name:"Golf Serenissima",prov:"Brescia",type:"outdoor",lat:45.5348,lon:10.2228,
+   addr:"Via Serenissima 34, 25135 Brescia (BS)",dist:87.5,
+   buche:4,post_cop:7,post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"4 buche executive (640m), 7 post. coperte, campo pratica illuminato, putting green, bar, piscina, tennis",
+   tel:"030 3535190",web:"https://www.centrosportivomariorigamonti.it/golf-serenissima-brescia/",stato:"Attivo",
+   note:"Campo pratica con 4 buche executive. Integrato nel Centro Sportivo Rigamonti."},
+
+  {name:"Golf Club Ponte di Legno",prov:"Brescia",type:"resort",lat:46.2558,lon:10.5105,
+   addr:"Loc. Valbione — Via Risorgimento 5, 25056 Ponte di Legno (BS)",dist:157.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"incluso",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, campo pratica, tennis, equitazione, bar, ristorante",
+   tel:"0364 900306",web:"https://www.golfpontedilegno.it",stato:"Attivo",
+   note:"Green fee feriale €40-50, festivo €50-60. CP incluso nel green fee."},
+
+  // ============ CREMONA ============
+  {name:"Golf Il Torrazzo",prov:"Cremona",type:"resort",lat:45.1368,lon:9.9925,
+   addr:"Via Castelleone 101, 26100 Cremona (CR)",dist:90.5,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, pro shop",
+   tel:"0372 490191",web:"https://www.golfiltorrazzo.com",stato:"Attivo",
+   note:"CP €10. Green fee feriale €30-40, festivo €35-45"},
+
+  {name:"Golf Club Benessere",prov:"Cremona",type:"outdoor",lat:45.3588,lon:9.7858,
+   addr:"SP2 Crema-Vailate, Loc. Fiumicella, 26017 Torlino Vimercati (CR)",dist:58.2,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica, pitching green, putting green, bar",
+   tel:"348 4567856",web:"⚠️ sito n.d.",stato:"Attivo",
+   note:"Solo campo pratica (no buche). Federato FIG."},
+
+  // ============ LODI ============
+  {name:"Terre del Po Golf Club",prov:"Lodi",type:"outdoor",lat:45.1258,lon:9.6738,
+   addr:"Cascina Castellina, 26842 Cornovecchio (LO)",dist:68.5,
+   buche:2,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica, pitching green, putting green, pro shop, bar, ristorante, 2 buche (in espansione)",
+   tel:"334 3331053",web:"https://www.golfterredelpo.com",stato:"Attivo",
+   note:"Fondato 2014. In espansione: 2 nuove buche ultimate 2021."},
+
+  // ============ PAVIA ============
+  {name:"Golf Club Ticino",prov:"Pavia",type:"outdoor",lat:45.1832,lon:9.1618,
+   addr:"Via Sora 15-20, 27100 Pavia (PV)",dist:37.5,
+   buche:5,post_cop:16,post_sco:0,
+   ingresso:"quota da €110/anno",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"5 buche par 17, 16 post. campo pratica, bar",
+   tel:"0382 304047",web:"http://www.ticino-golf.it",stato:"Attivo",
+   note:"Campo promozionale. 5 buche + 16 postazioni CP."},
+
+  {name:"Salice Terme Golf & Country",prov:"Pavia",type:"resort",lat:44.9548,lon:9.0288,
+   addr:"Via Diviani 8, 27055 Rivanazzano Terme (PV)",dist:67.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, piscina, hotel, spa, bar, ristorante, tennis",
+   tel:"0383 944796",web:"https://www.salicetermegolf-country.it",stato:"Attivo",
+   note:"CP €10. Green fee feriale €25, festivo €60"},
+
+  {name:"Golf Club Vigevano",prov:"Pavia",type:"resort",lat:45.3305,lon:8.8625,
+   addr:"Via Chitola 49, 27029 Vigevano (PV)",dist:33.8,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, piscina, bar, ristorante, pro shop",
+   tel:"0381 346628",web:"https://www.vigevanogolf.com",stato:"Attivo",
+   note:"CP €10. Green fee 9/18b feriale €45, festivo €60"},
+
+  // ============ MANTOVA ============
+  {name:"Origini Golf Mantova",prov:"Mantova",type:"resort",lat:45.1498,lon:10.7308,
+   addr:"Strada Colombina 60, 46010 Curtatone (MN)",dist:122.5,
+   buche:9,post_cop:12,post_sco:0,
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"9 buche, 12 post. campo pratica (coperte/riscaldate), putting green, bar, ristorante",
+   tel:"0376 490600",web:"https://www.mantovagolf.com",stato:"Attivo",
+   note:"9 buche. Green ispirato alla buca 17 di TPC Sawgrass."},
+
+  {name:"Airone Golf Club",prov:"Mantova",type:"outdoor",lat:45.3078,lon:10.5048,
+   addr:"Strada Casalmoro 20, 46042 Castelgoffredo (MN)",dist:96.5,
+   buche:3,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"3 buche executive (par 9), driving range, putting green, bunker, piscina",
+   tel:"339 6372539",web:"http://www.aironeuno.it",stato:"Attivo",
+   note:"Campo promozionale con 3 buche. Piscina adiacente."},
+
+  {name:"Golf Club Villa Schiarino",prov:"Mantova",type:"outdoor",lat:45.2215,lon:10.8158,
+   addr:"Strada S. Maddalena 7/9, 46047 Porto Mantovano (MN)",dist:130.5,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"PGA",
+   servizi:"Campo pratica, lezioni con maestro PGA",
+   tel:"0376 398238",web:"⚠️ sito n.d.",stato:"Attivo",
+   note:"Solo campo pratica + lezioni. Maestro PGA."},
+
+  // ============ LECCO ============
+  {name:"Golf Club Lecco",prov:"Lecco",type:"resort",lat:45.8078,lon:9.3468,
+   addr:"Via Mulini 7, 23834 Annone Brianza (LC)",dist:43.2,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€10-12",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, piscina, bar, ristorante, pro shop, tra Laghi di Annone e Pusiano",
+   tel:"0341 576900",web:"https://golfclublecco.it",stato:"Attivo",
+   note:"CP €10-12. Green fee feriale 18b €50, festivo €65"},
+
+  // ============ SONDRIO ============
+  {name:"Valtellina Golf Club",prov:"Sondrio",type:"resort",lat:46.1665,lon:9.8738,
+   addr:"Via Valeriana 29/A, 23010 Caiolo (SO)",dist:131.5,
+   buche:18,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"€15",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"18 buche, bar, ristorante, club house",
+   tel:"0342 354009",web:"https://www.valtellinagolf.com",stato:"Attivo",
+   note:"CP €15. Green fee feriale €55, festivo €70"},
+
+  {name:"Nuova Aprica Orobie Golf Club",prov:"Sondrio",type:"outdoor",lat:46.1498,lon:10.1488,
+   addr:"Corso Roma 150, 23031 Aprica (SO)",dist:137.8,
+   buche:0,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"n.v.",lezione:"su richiesta",maestro:"n.v.",
+   servizi:"Campo pratica, pitching green, putting green, bar, pro shop",
+   tel:"0342 746113",web:"https://www.apricagolfclub.it",stato:"Attivo",
+   note:"A 1200m slm nelle Alpi Orobie. Solo campo pratica."},
+
+  {name:"Golf Club Bormio",prov:"Sondrio",type:"resort",lat:46.4718,lon:10.3738,
+   addr:"Via Giustizia snc, 23032 Bormio (SO)",dist:181.2,
+   buche:9,post_cop:"n.v.",post_sco:"n.v.",
+   ingresso:"su richiesta",palline:"n.v.",noleggio:"Sì",lezione:"su richiesta",maestro:"PGAI",
+   servizi:"9 buche, campo pratica, bar, ristorante, pro shop",
+   tel:"0342 904590",web:"https://www.bormiogolf.com",stato:"Attivo",
+   note:"Maestro PGAI dal 1996. 9 buche ad alta quota."}
 ];
 
 // ── MAP ──────────────────────────────────────────────────────────────────────
@@ -370,12 +651,14 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   maxZoom:18
 }).addTo(map);
 
-function makeIcon(type){
+function makeIcon(type, stato){
+  const closed = stato && stato.includes('Chiuso');
+  const verify = stato && stato.includes('Da verificare');
   const colors={indoor:'#2563eb',outdoor:'#16a34a',resort:'#b45309'};
-  const c=colors[type]||'#555';
+  const c=closed?'#dc2626':verify?'#d97706':colors[type]||'#555';
   return L.divIcon({
     className:'',
-    html:`<div style="background:${c};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,
+    html:`<div style="background:${c};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);opacity:${closed?0.6:1}"></div>`,
     iconSize:[18,18],iconAnchor:[9,9]
   });
 }
@@ -395,7 +678,7 @@ clubs.forEach(c=>{
     <span style="font-size:.8rem"><b>Distanza da Milano:</b> ${c.dist} km</span><br>
     <span style="font-size:.8rem"><b>Tel:</b> ${c.tel}</span><br>
     ${webLink}`;
-  L.marker([c.lat,c.lon],{icon:makeIcon(c.type)}).addTo(map).bindPopup(popup);
+  L.marker([c.lat,c.lon],{icon:makeIcon(c.type, c.stato)}).addTo(map).bindPopup(popup);
 });
 
 // ── TABLE ────────────────────────────────────────────────────────────────────
@@ -415,17 +698,18 @@ function render(data){
   data.forEach(c=>{
     const webCell=c.web&&c.web!=='n.d.'?`<a href="${c.web}" target="_blank">Sito</a>`:'—';
     tbody.innerHTML+=`<tr data-type="${c.type}" data-prov="${c.prov}" data-dist="${c.dist}">
-      <td><strong>${c.name}</strong></td>
+      <td><strong>${c.name}</strong>${c.note?`<br><small style="color:#888;font-size:.72rem">${c.note}</small>`:''}</td>
       <td>${c.prov}</td>
       <td>${badgeHTML(c.type)}</td>
       <td>${c.dist}</td>
-      <td>${c.ingresso||'n.d.'}</td>
-      <td>${c.palline||'n.d.'}</td>
-      <td>${c.noleggio||'n.d.'}</td>
-      <td>${c.lezione||'n.d.'}</td>
-      <td>${c.maestro||'n.d.'}</td>
+      <td>${c.stato||'Attivo'}</td>
+      <td>${c.ingresso||'n.v.'}</td>
+      <td>${c.palline||'n.v.'}</td>
+      <td>${c.noleggio||'n.v.'}</td>
+      <td>${c.lezione||'n.v.'}</td>
+      <td>${c.maestro||'n.v.'}</td>
       <td style="max-width:160px;font-size:.78rem">${c.servizi||'—'}</td>
-      <td><a href="tel:${c.tel}">${c.tel}</a></td>
+      <td>${c.tel&&c.tel!='n.v.'?`<a href="tel:${c.tel}">${c.tel}</a>`:c.tel||'n.v.'}</td>
       <td>${webCell}</td>
     </tr>`;
   });
@@ -440,6 +724,7 @@ function filterAndRender(){
   const prov=document.getElementById('f-prov').value;
   const type=document.getElementById('f-type').value;
   const maxDist=parseInt(document.getElementById('f-dist').value);
+  const stato=document.getElementById('f-stato').value;
   document.getElementById('distance-val').textContent=maxDist>=200?'tutti':maxDist+' km';
 
   let data=clubs.filter(c=>{
@@ -447,6 +732,7 @@ function filterAndRender(){
     if(prov&&c.prov!==prov) return false;
     if(type&&c.type!==type) return false;
     if(maxDist<200&&c.dist>maxDist) return false;
+    if(stato&&!(c.stato||'Attivo').includes(stato)) return false;
     return true;
   });
   if(sortCol>=0){
@@ -462,7 +748,7 @@ function filterAndRender(){
   render(data);
 }
 
-['f-name','f-prov','f-type','f-dist'].forEach(id=>{
+['f-name','f-prov','f-type','f-dist','f-stato'].forEach(id=>{
   document.getElementById(id).addEventListener('input',filterAndRender);
   document.getElementById(id).addEventListener('change',filterAndRender);
 });
@@ -481,6 +767,7 @@ function resetFilters(){
   document.getElementById('f-type').value='';
   document.getElementById('f-dist').value=200;
   document.getElementById('distance-val').textContent='tutti';
+  document.getElementById('f-stato').value='';
   sortCol=-1;sortDir=1;
   document.querySelectorAll('th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
   filterAndRender();
