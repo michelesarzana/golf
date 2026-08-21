@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golf in Lombardia – Guida ai Campi Pratica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{
+  --green-dark:#1a3a2a;
+  --green-mid:#2d5a40;
+  --green-light:#4a8a60;
+  --gold:#c8a84b;
+  --gold-light:#e8c870;
+  --cream:#faf8f2;
+  --white:#ffffff;
+  --gray-100:#f5f3ee;
+  --gray-200:#e8e4da;
+  --gray-600:#6b6355;
+  --gray-800:#3a342a;
+  --indoor:#2563eb;
+  --outdoor:#16a34a;
+  --resort:#b45309;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--green-dark);}
+
+/* HEADER */
+header{background:var(--green-dark);padding:18px 40px;display:flex;align-items:center;justify-content:space-between;}
+.logo-text{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.5rem;letter-spacing:.05em;}
+.logo-sub{color:rgba(255,255,255,.55);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0e2419 0%,#1a3a2a 40%,#2d5a40 80%,#3d7050 100%);padding:70px 40px 60px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'⛳';position:absolute;font-size:220px;opacity:.04;top:-30px;right:-20px;transform:rotate(-15deg);}
+.hero h1{font-family:'Playfair Display',serif;font-size:3rem;color:var(--white);font-weight:700;line-height:1.2;margin-bottom:12px;}
+.hero h1 span{color:var(--gold);}
+.hero p{color:rgba(255,255,255,.7);font-size:1.1rem;max-width:600px;margin:0 auto 32px;}
+.stat-bar{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--gold);font-weight:700;}
+.stat-label{color:rgba(255,255,255,.6);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;margin-top:2px;}
+
+/* SECTION */
+section{padding:48px 40px;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--green-dark);margin-bottom:8px;}
+.section-line{width:60px;height:3px;background:var(--gold);margin-bottom:28px;}
+
+/* MAP */
+#map{height:480px;border-radius:12px;border:2px solid var(--gold);box-shadow:0 4px 24px rgba(26,58,42,.15);}
+
+/* FILTERS */
+.filters{background:var(--white);border:1px solid var(--gray-200);border-radius:12px;padding:24px 28px;margin-bottom:28px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.filter-group{display:flex;flex-direction:column;gap:6px;min-width:160px;}
+.filter-group label{font-size:.75rem;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.08em;}
+.filter-group select,.filter-group input{border:1px solid var(--gray-200);border-radius:8px;padding:9px 12px;font-family:'Inter',sans-serif;font-size:.9rem;color:var(--green-dark);background:var(--gray-100);outline:none;transition:border-color .2s;}
+.filter-group select:focus,.filter-group input:focus{border-color:var(--gold);}
+.filter-group input[type=range]{padding:4px 0;background:transparent;border:none;cursor:pointer;}
+#distance-val{font-size:.85rem;font-weight:600;color:var(--green-dark);}
+.btn-reset{background:var(--green-dark);color:var(--white);border:none;border-radius:8px;padding:9px 20px;font-family:'Inter',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .2s;align-self:flex-end;}
+.btn-reset:hover{background:var(--green-mid);}
+
+/* TABLE WRAPPER */
+.table-wrapper{overflow-x:auto;border-radius:12px;border:1px solid var(--gray-200);box-shadow:0 2px 12px rgba(0,0,0,.07);}
+table{width:100%;border-collapse:collapse;background:var(--white);min-width:1100px;}
+thead tr{background:var(--green-dark);}
+th{padding:13px 14px;text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);cursor:pointer;white-space:nowrap;user-select:none;}
+th:hover{background:var(--green-mid);}
+th.sort-asc::after{content:' ▲';font-size:.6rem;}
+th.sort-desc::after{content:' ▼';font-size:.6rem;}
+tbody tr{transition:background .15s;border-bottom:1px solid var(--gray-200);}
+tbody tr:nth-child(even){background:var(--gray-100);}
+tbody tr:hover{background:#e8f0ec;}
+td{padding:12px 14px;font-size:.85rem;vertical-align:middle;}
+td a{color:var(--green-mid);text-decoration:none;font-weight:500;}
+td a:hover{color:var(--gold);text-decoration:underline;}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap;}
+.badge-indoor{background:#dbeafe;color:var(--indoor);}
+.badge-outdoor{background:#dcfce7;color:#15803d;}
+.badge-resort{background:#fef3c7;color:var(--resort);}
+
+.no-results{text-align:center;padding:40px;color:var(--gray-600);font-style:italic;}
+#result-count{font-size:.85rem;color:var(--gray-600);margin-bottom:12px;}
+
+/* INFO BOX */
+.info-box{background:var(--white);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin-top:28px;font-size:.85rem;color:var(--gray-600);line-height:1.7;}
+.info-box strong{color:var(--green-dark);}
+
+/* FOOTER */
+footer{background:var(--green-dark);color:rgba(255,255,255,.5);text-align:center;padding:28px 40px;font-size:.8rem;line-height:1.8;}
+footer a{color:var(--gold);text-decoration:none;}
+
+@media(max-width:768px){
+  header{padding:14px 20px;}
+  .hero{padding:48px 20px 40px;}
+  .hero h1{font-size:2rem;}
+  .stat-bar{gap:24px;}
+  section{padding:32px 20px;}
+  .filters{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo-text">⛳ Golf in Lombardia</div>
+    <div class="logo-sub">Guida ai Campi Pratica</div>
+  </div>
+  <div style="color:rgba(255,255,255,.4);font-size:.75rem;text-align:right;">Aggiornato 2025 &nbsp;|&nbsp; 12 province</div>
+</header>
+
+<div class="hero">
+  <h1>Golf in <span>Lombardia</span></h1>
+  <p>La guida completa ai campi pratica, driving range e resort della regione. Filtra per provincia, distanza e tipo di struttura.</p>
+  <div class="stat-bar">
+    <div class="stat"><div class="stat-num" id="count-clubs">26</div><div class="stat-label">Club mappati</div></div>
+    <div class="stat"><div class="stat-num">12</div><div class="stat-label">Province</div></div>
+    <div class="stat"><div class="stat-num">Via Mantova 5</div><div class="stat-label">Distanze da Milano</div></div>
+  </div>
+</div>
+
+<!-- MAP -->
+<section>
+  <div class="section-title">Mappa Interattiva</div>
+  <div class="section-line"></div>
+  <div id="map"></div>
+  <div class="info-box">
+    <strong>Legenda marker:</strong> &nbsp;
+    🔵 Indoor (simulatori/centri chiusi) &nbsp;|&nbsp;
+    🟢 Campo Pratica / Driving Range &nbsp;|&nbsp;
+    🟡 Resort / Club con percorso 18 buche
+    <br>Clicca su un marker per vedere indirizzo, tipo, distanza e sito web.
+  </div>
+</section>
+
+<!-- FILTERS + TABLE -->
+<section style="padding-top:0;">
+  <div class="section-title">Tutti i Club</div>
+  <div class="section-line"></div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Cerca nome</label>
+      <input type="text" id="f-name" placeholder="es. Rovedine…">
+    </div>
+    <div class="filter-group">
+      <label>Provincia</label>
+      <select id="f-prov">
+        <option value="">Tutte</option>
+        <option>Milano</option>
+        <option>Monza e Brianza</option>
+        <option>Como</option>
+        <option>Varese</option>
+        <option>Bergamo</option>
+        <option>Brescia</option>
+        <option>Cremona</option>
+        <option>Lodi</option>
+        <option>Pavia</option>
+        <option>Mantova</option>
+        <option>Lecco</option>
+        <option>Sondrio</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tipo struttura</label>
+      <select id="f-type">
+        <option value="">Tutti</option>
+        <option value="indoor">Indoor</option>
+        <option value="outdoor">Campo Pratica</option>
+        <option value="resort">Resort/Club</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Distanza max da Milano <span id="distance-val">100 km</span></label>
+      <input type="range" id="f-dist" min="5" max="200" value="200" step="5">
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">Reimposta</button>
+  </div>
+
+  <div id="result-count"></div>
+
+  <div class="table-wrapper">
+    <table id="clubs-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Nome</th>
+          <th onclick="sortTable(1)">Provincia</th>
+          <th onclick="sortTable(2)">Tipo</th>
+          <th onclick="sortTable(3)">Dist. (km)</th>
+          <th onclick="sortTable(4)">Ingresso C.P.</th>
+          <th onclick="sortTable(5)">Palline</th>
+          <th>Noleggio Att.</th>
+          <th onclick="sortTable(7)">Lezione Maestro</th>
+          <th>Maestro</th>
+          <th>Servizi Extra</th>
+          <th>Tel</th>
+          <th>Sito</th>
+        </tr>
+      </thead>
+      <tbody id="clubs-tbody">
+      </tbody>
+    </table>
+  </div>
+  <div id="no-results" class="no-results" style="display:none">Nessun club trovato con i filtri selezionati.</div>
+</section>
+
+<footer>
+  <p><strong style="color:rgba(255,255,255,.8)">Golf in Lombardia</strong> — Guida ai campi pratica aggiornata 2025</p>
+  <p style="margin-top:6px;">Dati raccolti da siti ufficiali dei circoli e Federazione Italiana Golf. Verificare sempre le tariffe direttamente con i club prima della visita.</p>
+  <p style="margin-top:6px;">Distanze calcolate in linea d'aria da Via Mantova 5, Milano (45.4514, 9.1939)</p>
+</footer>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const clubs = [
+  // MILANO
+  {name:"Bold Sport Indoor Golf",prov:"Milano",type:"indoor",lat:45.4785,lon:9.1450,
+   addr:"Via G. Washington 70, Milano",dist:3.6,
+   ingresso:"n.d.",palline:"incluse in lezione",noleggio:"Sì",lezione:"€95/ora (incl. attrezz.)",maestro:"PGA",
+   servizi:"Fitness, fisioterapia, medicina sport",tel:"02 36744620",web:"https://www.boldsport.it/golf/"},
+
+  {name:"Golf Le Rovedine",prov:"Milano",type:"resort",lat:45.3815,lon:9.1240,
+   addr:"Via Karl Marx 18, Noverasco di Opera (MI)",dist:9.2,
+   ingresso:"n.d.",palline:"€7/100 palline",noleggio:"Sì",lezione:"Corso avv. 3 pax €169/p.",maestro:"FIG/PGA",
+   servizi:"Ristorante, pro shop, piscina, 18+9 buche",tel:"02 57606420",web:"https://www.rovedine.com"},
+
+  {name:"Castello Tolcinasco",prov:"Milano",type:"resort",lat:45.3460,lon:9.1175,
+   addr:"Via Tolcinasco, Pieve Emanuele (MI)",dist:12.1,
+   ingresso:"€25 (c.p. con Toptracer)",palline:"incluse",noleggio:"Sì",lezione:"Pacchetti academy",maestro:"PGA/FIG",
+   servizi:"Ristorante, piscina, Spa, resort, 27 buche",tel:"02 90456288",web:"https://www.golftolcinasco.it"},
+
+  {name:"Campo Pratica Orsini",prov:"Milano",type:"outdoor",lat:45.4240,lon:9.2918,
+   addr:"Via Buozzi 4/C, Peschiera Borromeo (MI)",dist:13.2,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"n.d.",maestro:"n.d.",
+   servizi:"Pitching green, putting green",tel:"02 5470581",web:"http://www.orsinigolf.it"},
+
+  {name:"Molinetto Country Club",prov:"Milano",type:"resort",lat:45.5165,lon:9.3468,
+   addr:"Strada Padana Superiore 1, Cernusco sul Naviglio (MI)",dist:17.8,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Contattare maestro PGAI",maestro:"PGAI",
+   servizi:"Bar, ristorante, piscina, spa, tennis, Trackman Range, 27 buche",tel:"02 92105128",web:"https://www.molinettocountryclub.it"},
+
+  {name:"Golf Club Ambrosiano",prov:"Milano",type:"resort",lat:45.3305,lon:8.9778,
+   addr:"Cascina Bertacca, Bubbiano (MI)",dist:24.3,
+   ingresso:"€10",palline:"n.d.",noleggio:"Sì (sacche)",lezione:"n.d.",maestro:"n.d.",
+   servizi:"Bar, ristorante, piscina, pro shop, 18 buche",tel:"02 90840820",web:"https://golfclubambrosiano.com"},
+
+  {name:"Green Club Lainate",prov:"Milano",type:"resort",lat:45.5697,lon:9.0088,
+   addr:"Via per Arese, Lainate (MI)",dist:19.5,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"€40/30 min",maestro:"FIG/PGA (4 maestri)",
+   servizi:"Hotel 4★, bar, ristorante, 18 buche, chipping green",tel:"02 9370651",web:"https://www.greenclubgolf.it"},
+
+  // MONZA E BRIANZA
+  {name:"Golf Monza",prov:"Monza e Brianza",type:"outdoor",lat:45.6014,lon:9.2181,
+   addr:"Via G. Falcone 15, Muggiò (MB)",dist:19.2,
+   ingresso:"€10",palline:"incluse",noleggio:"n.d.",lezione:"€60/60 min (2 pers.)",maestro:"Federale FIG",
+   servizi:"Pitch & Putt 3 buche, putting green, zona approcci",tel:"039 790072",web:"https://www.golfmonza.com"},
+
+  {name:"BE Golf (ex Bricch Golf)",prov:"Monza e Brianza",type:"outdoor",lat:45.6533,lon:9.1365,
+   addr:"Barlassina (MB)",dist:26.8,
+   ingresso:"Abbonamento €350/anno",palline:"incluse",noleggio:"n.d.",lezione:"n.d.",maestro:"n.d.",
+   servizi:"Campo pratica",tel:"n.d.",web:"https://www.begolf.it"},
+
+  {name:"Barlassina Country Club",prov:"Monza e Brianza",type:"resort",lat:45.6651,lon:9.1300,
+   addr:"Via Privata Golf 2, Lentate sul Seveso (MB)",dist:27.5,
+   ingresso:"€10–25",palline:"n.d.",noleggio:"n.d.",lezione:"Corsi individuali e gruppo",maestro:"FIG/PGA",
+   servizi:"Bar, ristorante, foresteria, pro shop, 18 buche",tel:"0362 560621",web:"https://www.barlassinacountryclub.it"},
+
+  {name:"Golf Brianza CC",prov:"Monza e Brianza",type:"resort",lat:45.6434,lon:9.3787,
+   addr:"Cascina Cazzù 4, Usmate Velate (MB)",dist:26.0,
+   ingresso:"€10",palline:"n.d.",noleggio:"Sì (sacche, carrelli)",lezione:"n.d.",maestro:"n.d.",
+   servizi:"Bar, ristorante, foresteria, golf cart, 18 buche",tel:"039 6829089",web:"https://brianzagolf.it"},
+
+  {name:"Golf Club Milano (Parco Monza)",prov:"Monza e Brianza",type:"resort",lat:45.6496,lon:9.2805,
+   addr:"Parco Reale di Monza, Monza (MB)",dist:20.8,
+   ingresso:"Solo soci",palline:"n.d.",noleggio:"n.d.",lezione:"Solo soci",maestro:"n.d.",
+   servizi:"Ristorante, pro shop, 27 buche, percorso storico",tel:"039 303081",web:"https://golfclubmilano.com"},
+
+  // COMO
+  {name:"Golf Club Carimate",prov:"Como",type:"resort",lat:45.7016,lon:9.1015,
+   addr:"Via Airoldi 2, Carimate (CO)",dist:29.0,
+   ingresso:"€10",palline:"n.d.",noleggio:"Sì",lezione:"Team di professionisti",maestro:"PGA/FIG",
+   servizi:"Bar, ristorante, pro shop, 18 buche, bunker",tel:"031 790226",web:"https://www.golfcarimate.it"},
+
+  {name:"Golf Club Villa d'Este",prov:"Como",type:"resort",lat:45.7678,lon:9.1578,
+   addr:"Via per Cantù 13, Montorfano (CO)",dist:38.2,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche)",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Ristorante, lodge, pro shop, 18 buche, vista lago",tel:"031 200200",web:"https://www.golfvilladeste.com"},
+
+  // VARESE
+  {name:"Golf Club Varese",prov:"Varese",type:"resort",lat:45.8265,lon:8.7880,
+   addr:"Via Vittorio Veneto 59, Luvinate (VA)",dist:46.2,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"FIG",
+   servizi:"Bar, ristorante, pro shop, 18 buche",tel:"0332 229302",web:"https://www.golfclubvarese.it"},
+
+  {name:"Panorama Golf Varese",prov:"Varese",type:"outdoor",lat:45.8010,lon:8.8120,
+   addr:"Via Belmonte, Varese (VA)",dist:43.5,
+   ingresso:"Pay&play",palline:"incluse nel green fee",noleggio:"n.d.",lezione:"3 lez. 30' + 1 mese pratica €85",maestro:"n.d.",
+   servizi:"Bar, ristorante, 2 percorsi, benessere",tel:"0332 831580",web:"https://www.panoramagolf.it"},
+
+  // BERGAMO
+  {name:"Golf Club Bergamo L'Albenza",prov:"Bergamo",type:"resort",lat:45.7500,lon:9.5783,
+   addr:"Via Longoni 12, Almenno San Bartolomeo (BG)",dist:39.0,
+   ingresso:"€25 feriale / €30 festivo",palline:"€2.50/32 palline",noleggio:"Sì (carrelli, cart)",lezione:"Pacchetto neofiti €300",maestro:"FIG/PGA",
+   servizi:"Bar, ristorante, pro shop, 27 buche, gare nazionali",tel:"035 640028",web:"https://golfbergamo.club"},
+
+  // BRESCIA
+  {name:"Golf Bogliaco",prov:"Brescia",type:"resort",lat:45.7043,lon:10.5870,
+   addr:"Via Lungolago, Toscolano Maderno (BS)",dist:94.6,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (sacche, carrelli)",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Piscina, bar, ristorante, lodge, 18 buche, vista Garda",tel:"0365 641006",web:"https://www.golfbogliaco.com"},
+
+  {name:"Franciacorta Golf Club",prov:"Brescia",type:"resort",lat:45.6118,lon:9.9878,
+   addr:"Via Lombardia 13, Rodengo Saiano (BS)",dist:73.4,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Ristorante, bar, relais hotel, pro shop, 27 buche",tel:"030 7281180",web:"https://www.franciacortagolfclub.it"},
+
+  {name:"GardaGolf Country Club",prov:"Brescia",type:"resort",lat:45.5480,lon:10.5528,
+   addr:"Via Angelo Omodeo 2, Soiano del Lago (BS)",dist:101.2,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (cart, carrelli)",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Ristorante, piscina, tennis, foresteria, pro shop, 27 buche",tel:"0365 674707",web:"https://www.gardagolf.it"},
+
+  // CREMONA
+  {name:"Golf Il Torrazzo",prov:"Cremona",type:"resort",lat:45.1540,lon:9.8760,
+   addr:"Via Castelleone 101, S. Predengo, Cremona (CR)",dist:75.3,
+   ingresso:"€10",palline:"n.d.",noleggio:"Sì (carrelli)",lezione:"Contattare segreteria",maestro:"n.d.",
+   servizi:"Bar, ristorante, meeting room, campo pratica illuminato, 9 buche",tel:"0372 471563",web:"https://www.golfiltorrazzo.it"},
+
+  // LODI
+  {name:"Terre del Po GC",prov:"Lodi",type:"outdoor",lat:45.1390,lon:9.6850,
+   addr:"Cascina Castellina, Cornovecchio (LO)",dist:58.5,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"n.d.",lezione:"n.d.",maestro:"n.d.",
+   servizi:"Bar, ristorante, pitching green, putting green, pro shop",tel:"334 3331053",web:"https://www.golfterredelpo.com"},
+
+  // PAVIA
+  {name:"Ticino Golf Club",prov:"Pavia",type:"outdoor",lat:45.1780,lon:9.1420,
+   addr:"Via Sora 20, Pavia (PV)",dist:35.2,
+   ingresso:"Quota soc. da €110/anno",palline:"n.d.",noleggio:"n.d.",lezione:"Maestri professionisti",maestro:"n.d.",
+   servizi:"Pitching green, putting green, 5 buche par 17, campo illuminato",tel:"0382 1753160",web:"https://www.ticino-golf.it"},
+
+  // MANTOVA
+  {name:"Origini Golf Mantova",prov:"Mantova",type:"resort",lat:45.1438,lon:10.7890,
+   addr:"Via Colombina 60, San Lorenzo (MN)",dist:116.0,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Bar, ristorante, 9 buche + campo pratica 12 postazioni",tel:"n.d.",web:"https://www.originigolfmantova.com"},
+
+  // LECCO
+  {name:"Golf Club Lecco",prov:"Lecco",type:"resort",lat:45.8070,lon:9.3220,
+   addr:"Frazione Pizzighettone 1, Annone Brianza (LC)",dist:38.5,
+   ingresso:"n.d.",palline:"n.d.",noleggio:"Sì (cart)",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Bar, ristorante, pro shop, 18 buche, piscina",tel:"0341 579525",web:"https://golfclublecco.it"},
+
+  // SONDRIO
+  {name:"Valtellina Golf & Country Club",prov:"Sondrio",type:"resort",lat:46.1260,lon:9.7840,
+   addr:"Via Adda, Caiolo (SO)",dist:100.5,
+   ingresso:"€15",palline:"n.d.",noleggio:"Sì (cart)",lezione:"Disponibile",maestro:"n.d.",
+   servizi:"Bar, ristorante, pro shop, 18 buche par 71",tel:"0342 354009",web:"https://www.valtellinagolf.com"},
+];
+
+// ── MAP ──────────────────────────────────────────────────────────────────────
+const map = L.map('map').setView([45.55, 9.85], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+  attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  maxZoom:18
+}).addTo(map);
+
+function makeIcon(type){
+  const colors={indoor:'#2563eb',outdoor:'#16a34a',resort:'#b45309'};
+  const c=colors[type]||'#555';
+  return L.divIcon({
+    className:'',
+    html:`<div style="background:${c};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>`,
+    iconSize:[18,18],iconAnchor:[9,9]
+  });
+}
+
+// Ref point marker
+L.marker([45.4514,9.1939],{icon:L.divIcon({
+  className:'',
+  html:'<div style="background:#e11d48;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.5)"></div>',
+  iconSize:[14,14],iconAnchor:[7,7]
+})}).addTo(map).bindPopup('<b>📍 Via Mantova 5, Milano</b><br><small>Punto di riferimento distanze</small>');
+
+clubs.forEach(c=>{
+  const typeLabel={indoor:'Indoor',outdoor:'Campo Pratica',resort:'Resort/Club'}[c.type]||c.type;
+  const webLink=c.web&&c.web!=='n.d.'?`<a href="${c.web}" target="_blank">Sito web</a>`:'';
+  const popup=`<b>${c.name}</b><br><small>${c.addr}</small><br>
+    <span style="font-size:.8rem"><b>Tipo:</b> ${typeLabel}</span><br>
+    <span style="font-size:.8rem"><b>Distanza da Milano:</b> ${c.dist} km</span><br>
+    <span style="font-size:.8rem"><b>Tel:</b> ${c.tel}</span><br>
+    ${webLink}`;
+  L.marker([c.lat,c.lon],{icon:makeIcon(c.type)}).addTo(map).bindPopup(popup);
+});
+
+// ── TABLE ────────────────────────────────────────────────────────────────────
+let sortCol=-1,sortDir=1;
+const tbody=document.getElementById('clubs-tbody');
+const countEl=document.getElementById('result-count');
+const noRes=document.getElementById('no-results');
+
+function badgeHTML(type){
+  if(type==='indoor') return '<span class="badge badge-indoor">Indoor</span>';
+  if(type==='outdoor') return '<span class="badge badge-outdoor">Campo Pratica</span>';
+  return '<span class="badge badge-resort">Resort</span>';
+}
+
+function render(data){
+  tbody.innerHTML='';
+  data.forEach(c=>{
+    const webCell=c.web&&c.web!=='n.d.'?`<a href="${c.web}" target="_blank">Sito</a>`:'—';
+    tbody.innerHTML+=`<tr data-type="${c.type}" data-prov="${c.prov}" data-dist="${c.dist}">
+      <td><strong>${c.name}</strong></td>
+      <td>${c.prov}</td>
+      <td>${badgeHTML(c.type)}</td>
+      <td>${c.dist}</td>
+      <td>${c.ingresso||'n.d.'}</td>
+      <td>${c.palline||'n.d.'}</td>
+      <td>${c.noleggio||'n.d.'}</td>
+      <td>${c.lezione||'n.d.'}</td>
+      <td>${c.maestro||'n.d.'}</td>
+      <td style="max-width:160px;font-size:.78rem">${c.servizi||'—'}</td>
+      <td><a href="tel:${c.tel}">${c.tel}</a></td>
+      <td>${webCell}</td>
+    </tr>`;
+  });
+  const n=data.length;
+  countEl.textContent=`${n} club trovati`;
+  noRes.style.display=n===0?'block':'none';
+  document.getElementById('count-clubs').textContent=clubs.length;
+}
+
+function filterAndRender(){
+  const name=document.getElementById('f-name').value.toLowerCase();
+  const prov=document.getElementById('f-prov').value;
+  const type=document.getElementById('f-type').value;
+  const maxDist=parseInt(document.getElementById('f-dist').value);
+  document.getElementById('distance-val').textContent=maxDist>=200?'tutti':maxDist+' km';
+
+  let data=clubs.filter(c=>{
+    if(name&&!c.name.toLowerCase().includes(name)) return false;
+    if(prov&&c.prov!==prov) return false;
+    if(type&&c.type!==type) return false;
+    if(maxDist<200&&c.dist>maxDist) return false;
+    return true;
+  });
+  if(sortCol>=0){
+    const keys=['name','prov','type','dist','ingresso','palline','noleggio','lezione'];
+    data.sort((a,b)=>{
+      const ak=Object.values(a)[sortCol];
+      const bk=Object.values(b)[sortCol];
+      const an=parseFloat(ak),bn=parseFloat(bk);
+      if(!isNaN(an)&&!isNaN(bn)) return (an-bn)*sortDir;
+      return String(ak).localeCompare(String(bk))*sortDir;
+    });
+  }
+  render(data);
+}
+
+['f-name','f-prov','f-type','f-dist'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',filterAndRender);
+  document.getElementById(id).addEventListener('change',filterAndRender);
+});
+
+function sortTable(col){
+  const ths=document.querySelectorAll('th');
+  ths.forEach(th=>{th.classList.remove('sort-asc','sort-desc');});
+  if(sortCol===col){sortDir*=-1;}else{sortCol=col;sortDir=1;}
+  ths[col].classList.add(sortDir===1?'sort-asc':'sort-desc');
+  filterAndRender();
+}
+
+function resetFilters(){
+  document.getElementById('f-name').value='';
+  document.getElementById('f-prov').value='';
+  document.getElementById('f-type').value='';
+  document.getElementById('f-dist').value=200;
+  document.getElementById('distance-val').textContent='tutti';
+  sortCol=-1;sortDir=1;
+  document.querySelectorAll('th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
+  filterAndRender();
+}
+
+render(clubs);
+</script>
+</body>
+</html>
